@@ -26,20 +26,20 @@ export function initializeGraph(svgElement, nodes, links) {
   const defs = svg.append('defs');
   const pattern = defs.append('pattern')
     .attr('id', 'grid-pattern')
-    .attr('width', 20)
-    .attr('height', 20)
+    .attr('width', 40) // Adjust dot spacing
+    .attr('height', 40)
     .attr('patternUnits', 'userSpaceOnUse');
   
   pattern.append('rect')
-    .attr('width', 20)
-    .attr('height', 20)
+    .attr('width', 40)
+    .attr('height', 40)
     .attr('fill', 'black');
 
-  pattern.append('path')
-    .attr('d', 'M 20 0 L 0 0 0 20')
-    .attr('fill', 'none')
-    .attr('stroke', 'rgba(255, 255, 255, 0.1)')
-    .attr('stroke-width', '1');
+  pattern.append('circle')
+    .attr('cx', 20)
+    .attr('cy', 20)
+    .attr('r', 2) // Adjust dot size
+    .attr('fill', 'rgba(255, 255, 255, 0.5)');
 
   const simulation = forceSimulation(nodes)
     .force('link', forceLink(links).id(d => d.id).distance(d => d.type === 'category' ? 200 : 100))
@@ -121,7 +121,7 @@ export function initializeGraph(svgElement, nodes, links) {
   }
 
   function getFontSize(type) {
-    return type === 'owner' ? 48 : type === 'category' ? 42 : 24; // Increased font sizes
+    return type === 'owner' ? 48 : type === 'category' ? 42 : 30; // Increased font sizes
   }
 
   function getTextWidth(text, fontSize) {
