@@ -3,6 +3,6 @@
 	export let node;
 </script>
 
-<rect width="20" height="20" fill="blue" x={-10} y={-10}>
+<rect width="50" height="50" fill="blue" x={-10} y={-10}>
 	<title>{node.name}</title>
 </rect>
