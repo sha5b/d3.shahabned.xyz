@@ -1,0 +1,5 @@
+<script>
+    export let link;
+  </script>
+  
+  <line stroke="#999" stroke-opacity="0.6" stroke-width="2"></line>

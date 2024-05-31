@@ -1,11 +1,29 @@
-<script>
-	export let data;
 
-    console.log(data);
+
+<script>
+  import Graph from '$lib/components/Graph.svelte';
+
+  export let data;
+
+  let nodes = [
+    { id: 'owner', name: data.owner?.name || 'Owner' } // Default to 'Owner' if data.owner.name is undefined
+  ];
+
+  let links = [];
+
+  if (Array.isArray(data.categories)) {
+    data.categories.forEach(category => {
+      nodes.push({ id: category.id, name: category.name });
+      links.push({ source: 'owner', target: category.id });
+
+      if (Array.isArray(category.works)) {
+        category.works.forEach(work => {
+          nodes.push({ id: work.id, name: work.title });
+          links.push({ source: category.id, target: work.id });
+        });
+      }
+    });
+  }
 </script>
 
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
-<p>Hi</p>
-
-
+<Graph {nodes} {links} />
