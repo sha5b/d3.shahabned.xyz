@@ -25,10 +25,13 @@ export function initializeGraph(svgElement, nodes, links) {
   const node = svg.append('g')
     .attr('stroke', '#fff')
     .attr('stroke-width', 1.5)
-    .selectAll('circle')
+    .selectAll('rect')
     .data(nodes)
-    .enter().append('circle')
-    .attr('r', 10)
+    .enter().append('rect')
+    .attr('width', 20)
+    .attr('height', 20)
+    .attr('x', -10)
+    .attr('y', -10)
     .attr('fill', 'blue')
     .call(drag()
       .on('start', dragstarted)
@@ -46,8 +49,8 @@ export function initializeGraph(svgElement, nodes, links) {
       .attr('y2', d => d.target.y);
 
     node
-      .attr('cx', d => d.x)
-      .attr('cy', d => d.y);
+      .attr('x', d => d.x - 10)
+      .attr('y', d => d.y - 10);
   });
 
   function dragstarted(event, d) {
