@@ -13,8 +13,10 @@ export function initializeGraph(svgElement, nodes, links) {
 
   const grid = container.append('rect')
     .attr('class', 'grid')
-    .attr('width', '100%')
-    .attr('height', '100%')
+    .attr('x', -width * 5) // Start far to the left
+    .attr('y', -height * 5) // Start far above
+    .attr('width', width * 10) // Extend far to the right
+    .attr('height', height * 10) // Extend far below
     .attr('fill', 'url(#grid-pattern)');
 
   svg.call(zoom().on('zoom', (event) => {
@@ -88,7 +90,7 @@ export function initializeGraph(svgElement, nodes, links) {
     .attr('fill', 'black') // Text color
     .attr('font-family', 'Oxanium')
     .attr('font-size', d => getFontSize(d.type) + 'px')
-    .attr('font-weight', 'normal') // Adjusted font weight
+    .attr('font-weight', d => d.type === 'owner' || d.type === 'category' ? 'bold' : 'normal') // Normal weight for work nodes
     .text(d => d.text);
 
   simulation.on('tick', () => {
@@ -119,7 +121,7 @@ export function initializeGraph(svgElement, nodes, links) {
   }
 
   function getFontSize(type) {
-    return type === 'owner' ? 42 : type === 'category' ? 36 : 18;
+    return type === 'owner' ? 48 : type === 'category' ? 42 : 24; // Increased font sizes
   }
 
   function getTextWidth(text, fontSize) {

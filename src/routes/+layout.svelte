@@ -14,17 +14,16 @@
       background: black;
     }
   
-    .background {
-      background: black;
+    main {
       position: fixed;
       width: 100%;
       height: 100%;
       z-index: -1;
+      background: black;
     }
   </style>
   
   <main>
-    <div class="background"></div>
     <slot></slot>
   </main>
   
