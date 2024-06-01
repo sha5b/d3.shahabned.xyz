@@ -1,5 +1,6 @@
 // src/lib/d3.js
 import { select, forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide, zoom } from 'd3';
+import { getImageURL } from '$lib/utils/getURL';
 
 export function initializeGraph(svgElement, nodes, links) {
   const width = window.innerWidth;
@@ -48,7 +49,8 @@ export function initializeGraph(svgElement, nodes, links) {
     .force('center', forceCenter(width / 2, height / 2))
     .force('collide', forceCollide().radius(d => {
       const textWidth = getTextWidth(d.text, getFontSize(d.type));
-      return Math.max(textWidth + 20, getFontSize(d.type) + 10) / 2 + 20;
+      const imageSize = d.type === 'work' && d.thump ? 50 : 0; // Assuming 50px thumbnails for works
+      return Math.max(textWidth + 20, getFontSize(d.type) + 10) / 2 + 20 + imageSize; // Add more padding
     }).iterations(2))
     .on('tick', ticked);
 
@@ -92,6 +94,14 @@ export function initializeGraph(svgElement, nodes, links) {
     .attr('font-size', d => getFontSize(d.type) + 'px')
     .attr('font-weight', d => d.type === 'owner' || d.type === 'category' ? 'bold' : 'normal')
     .text(d => d.text);
+
+  node.filter(d => d.type === 'work' && d.thump)
+    .append('image')
+    .attr('xlink:href', d => getImageURL('works', d.id, d.thump, '50x50'))
+    .attr('x', -25)
+    .attr('y', -35)
+    .attr('width', 50)
+    .attr('height', 50);
 
   function ticked() {
     nodes.forEach(d => {

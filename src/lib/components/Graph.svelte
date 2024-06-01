@@ -16,7 +16,18 @@
 <svg bind:this={svgElement}></svg>
 
 <style>
-  .grid {
-    fill: url(#grid-pattern);
+  .node-content {
+    display: inline-block;
+    text-align: center;
+  }
+
+  .node-content img {
+    display: block;
+    margin: 0 auto;
+  }
+
+  .node-content span {
+    display: block;
+    margin-top: 5px;
   }
 </style>
