@@ -6,6 +6,7 @@ export function initializeGraph(svgElement, nodes, links) {
   const height = window.innerHeight;
   const gridSize = 100;
   const padding = 40;
+  const hullPadding = 50; // Additional padding for hulls
 
   const svg = select(svgElement)
     .attr('width', width)
@@ -144,10 +145,10 @@ export function initializeGraph(svgElement, nodes, links) {
         .flatMap(d => {
           const { width, height } = getNodeDimensions(d);
           return [
-            [d.x - width / 2 - padding, d.y - height / 2 - padding],
-            [d.x + width / 2 + padding, d.y - height / 2 - padding],
-            [d.x + width / 2 + padding, d.y + height / 2 + padding],
-            [d.x - width / 2 - padding, d.y + height / 2 + padding],
+            [d.x - width / 2 - padding - hullPadding, d.y - height / 2 - padding - hullPadding],
+            [d.x + width / 2 + padding + hullPadding, d.y - height / 2 - padding - hullPadding],
+            [d.x + width / 2 + padding + hullPadding, d.y + height / 2 + padding + hullPadding],
+            [d.x - width / 2 - padding - hullPadding, d.y + height / 2 + padding + hullPadding],
           ];
         });
 
@@ -165,7 +166,7 @@ export function initializeGraph(svgElement, nodes, links) {
 
     hullSelection.enter()
       .append('path')
-      .attr('fill', 'rgba(255, 255, 255, 0.1)')
+      .attr('fill', 'rgba(255, 255, 255, 0)')
       .attr('stroke', 'white')
       .attr('stroke-dasharray', '5,5')
       .attr('stroke-width', 2)
