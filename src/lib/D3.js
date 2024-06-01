@@ -1,4 +1,3 @@
-// src/lib/d3.js
 import { select, forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide, zoom } from 'd3';
 import { getImageURL } from '$lib/utils/getURL';
 
@@ -44,14 +43,21 @@ export function initializeGraph(svgElement, nodes, links) {
     .attr('fill', 'rgba(255, 255, 255, 0.5)');
 
   const simulation = forceSimulation(nodes)
-    .force('link', forceLink(links).id(d => d.id).distance(d => d.source.type === 'owner' ? 300 : 150))
-    .force('charge', forceManyBody().strength(-400))
+    .force('link', forceLink(links).id(d => d.id).distance(d => {
+      if (d.source.type === 'owner' || d.target.type === 'owner') {
+        return 500;
+      } else if (d.source.type === 'category' || d.target.type === 'category') {
+        return 300;
+      }
+      return 200;
+    }))
+    .force('charge', forceManyBody().strength(d => d.type === 'owner' ? -1500 : -300))
     .force('center', forceCenter(width / 2, height / 2))
     .force('collide', forceCollide().radius(d => {
-      const textWidth = getTextWidth(d.text, getFontSize(d.type));
-      const imageSize = d.type === 'work' && d.thump ? 50 : 0; // Assuming 50px thumbnails for works
-      return Math.max(textWidth + 20, getFontSize(d.type) + 10) / 2 + 20 + imageSize; // Add more padding
-    }).iterations(2))
+      const { width, height } = getNodeDimensions(d);
+      const baseRadius = Math.max(width, height) / 2;
+      return d.type === 'owner' ? baseRadius + 200 : d.type === 'category' ? baseRadius + 100 : baseRadius + 50;
+    }).iterations(3))
     .on('tick', ticked);
 
   const link = container.append('g')
@@ -72,16 +78,10 @@ export function initializeGraph(svgElement, nodes, links) {
     .enter().append('g');
 
   node.append('rect')
-    .attr('width', d => {
-      const textWidth = getTextWidth(d.text, getFontSize(d.type));
-      return textWidth + 20;
-    })
-    .attr('height', d => getFontSize(d.type) + 10)
-    .attr('x', d => {
-      const textWidth = getTextWidth(d.text, getFontSize(d.type));
-      return -((textWidth + 20) / 2);
-    })
-    .attr('y', d => -(getFontSize(d.type) + 10) / 2)
+    .attr('width', d => getNodeDimensions(d).width)
+    .attr('height', d => getNodeDimensions(d).height)
+    .attr('x', d => -getNodeDimensions(d).width / 2)
+    .attr('y', d => -getNodeDimensions(d).height / 2)
     .attr('fill', 'white');
 
   node.append('text')
@@ -114,8 +114,18 @@ export function initializeGraph(svgElement, nodes, links) {
       const sourceY = d.source.y;
       const targetX = d.target.x;
       const targetY = d.target.y;
-      const midX = (sourceX + targetX) / 2;
-      return `M${sourceX},${sourceY} L${midX},${sourceY} L${midX},${targetY} L${targetX},${targetY}`;
+
+      let midX, midY;
+
+      if (Math.abs(targetX - sourceX) > Math.abs(targetY - sourceY)) {
+        midX = sourceX + (targetX - sourceX) / 2;
+        midY = sourceY;
+      } else {
+        midX = sourceX;
+        midY = sourceY + (targetY - sourceY) / 2;
+      }
+
+      return `M${sourceX},${sourceY} L${midX},${midY} L${targetX},${targetY}`;
     });
 
     node.attr('transform', d => `translate(${d.x},${d.y})`);
@@ -133,5 +143,13 @@ export function initializeGraph(svgElement, nodes, links) {
       return context.measureText(text).width;
     }
     return 0;
+  }
+
+  function getNodeDimensions(node) {
+    const textWidth = getTextWidth(node.text, getFontSize(node.type));
+    const imageSize = node.type === 'work' && node.thump ? 50 : 0;
+    const width = textWidth + 20 + imageSize;
+    const height = getFontSize(node.type) + 10 + (node.type === 'work' && node.thump ? 50 : 0);
+    return { width, height };
   }
 }
