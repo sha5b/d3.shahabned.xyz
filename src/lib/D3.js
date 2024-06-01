@@ -1,10 +1,11 @@
-import { select, forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide, zoom } from 'd3';
+import { select, forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide, zoom, polygonHull, line, curveBasisClosed } from 'd3';
 import { getImageURL } from '$lib/utils/getURL';
 
 export function initializeGraph(svgElement, nodes, links) {
   const width = window.innerWidth;
   const height = window.innerHeight;
   const gridSize = 100;
+  const padding = 40;
 
   const svg = select(svgElement)
     .attr('width', width)
@@ -45,20 +46,23 @@ export function initializeGraph(svgElement, nodes, links) {
   const simulation = forceSimulation(nodes)
     .force('link', forceLink(links).id(d => d.id).distance(d => {
       if (d.source.type === 'owner' || d.target.type === 'owner') {
-        return 500;
+        return 500;  // Increase distance to prevent overlap
       } else if (d.source.type === 'category' || d.target.type === 'category') {
-        return 300;
+        return 200;  // Closer but not overlapping
       }
-      return 200;
+      return 150;  // Default distance
     }))
     .force('charge', forceManyBody().strength(d => d.type === 'owner' ? -1500 : -300))
     .force('center', forceCenter(width / 2, height / 2))
     .force('collide', forceCollide().radius(d => {
       const { width, height } = getNodeDimensions(d);
       const baseRadius = Math.max(width, height) / 2;
-      return d.type === 'owner' ? baseRadius + 200 : d.type === 'category' ? baseRadius + 100 : baseRadius + 50;
+      return d.type === 'owner' ? baseRadius + 200 : d.type === 'category' ? baseRadius + 80 : baseRadius + 50;  // Adjust collision radius
     }).iterations(3))
     .on('tick', ticked);
+
+  const hullGroup = container.append('g')
+    .attr('class', 'hulls');
 
   const link = container.append('g')
     .attr('stroke-opacity', 0.6)
@@ -101,7 +105,8 @@ export function initializeGraph(svgElement, nodes, links) {
     .attr('x', -25)
     .attr('y', -35)
     .attr('width', 50)
-    .attr('height', 50);
+    .attr('height', 50)
+    .attr('loading', 'lazy');  // Lazy loading attribute
 
   function ticked() {
     nodes.forEach(d => {
@@ -109,6 +114,7 @@ export function initializeGraph(svgElement, nodes, links) {
       d.y = Math.round(d.y / gridSize) * gridSize;
     });
 
+    // Update link paths
     link.attr('d', d => {
       const sourceX = d.source.x;
       const sourceY = d.source.y;
@@ -128,7 +134,45 @@ export function initializeGraph(svgElement, nodes, links) {
       return `M${sourceX},${sourceY} L${midX},${midY} L${targetX},${targetY}`;
     });
 
+    // Update node positions
     node.attr('transform', d => `translate(${d.x},${d.y})`);
+
+    // Draw convex hulls around categories
+    const categories = Array.from(new Set(nodes.filter(d => d.type === 'category').map(d => d.id)));
+    const hulls = categories.map(category => {
+      const points = nodes.filter(d => d.category === category || d.id === category)
+        .flatMap(d => {
+          const { width, height } = getNodeDimensions(d);
+          return [
+            [d.x - width / 2 - padding, d.y - height / 2 - padding],
+            [d.x + width / 2 + padding, d.y - height / 2 - padding],
+            [d.x + width / 2 + padding, d.y + height / 2 + padding],
+            [d.x - width / 2 - padding, d.y + height / 2 + padding],
+          ];
+        });
+
+      if (points.length > 2) {
+        const hull = polygonHull(points);
+        return { category, path: hull };
+      }
+      return null;
+    }).filter(d => d !== null);
+
+    const hullPath = line().curve(curveBasisClosed);
+
+    const hullSelection = hullGroup.selectAll('path')
+      .data(hulls, d => d.category);
+
+    hullSelection.enter()
+      .append('path')
+      .attr('fill', 'rgba(255, 255, 255, 0.1)')
+      .attr('stroke', 'white')
+      .attr('stroke-dasharray', '5,5')
+      .attr('stroke-width', 2)
+      .merge(hullSelection)
+      .attr('d', d => hullPath(d.path));
+
+    hullSelection.exit().remove();
   }
 
   function getFontSize(type) {

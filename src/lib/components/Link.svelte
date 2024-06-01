@@ -1,6 +1,19 @@
-<!-- src/lib/components/Link.svelte -->
+<!-- src/components/Link.svelte -->
 <script>
-  export let link;
+  export let source;
+  export let target;
+  export let stroke;
+  export let strokeWidth;
+  export let strokeDasharray;
+
+  // additional props and logic if necessary
 </script>
 
-<path stroke="#999" stroke-width="2" fill="none" />
+<path 
+  {source} 
+  {target} 
+  {stroke} 
+  {strokeWidth} 
+  {strokeDasharray} 
+  fill="none" 
+/>

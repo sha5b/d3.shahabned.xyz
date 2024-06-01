@@ -1,43 +1,59 @@
-<script context="module">
-	export { load } from './+page.js';
-</script>
-
 <script>
-	import Graph from '$lib/components/Graph.svelte';
-
 	export let data;
 
-	// Create the owner node
-	let nodes = [{ id: 'owner', text: data.owner?.name || 'Owner', type: 'owner' }];
-
+	let nodes = [];
 	let links = [];
 
-	if (Array.isArray(data.categories)) {
-		data.categories.forEach((category) => {
-			// Create a node for each category
-			nodes.push({
-				id: category.id,
-				text: category.title,
-				type: 'category'
-			});
-			// Link the category to the owner
-			links.push({ source: 'owner', target: category.id, type: 'owner-category' });
+	// Prepare nodes and links
+	const ownerNode = {
+		id: data.owner.id,
+		text: data.owner.name,
+		type: 'owner'
+	};
+	nodes.push(ownerNode);
 
-			// Filter works belonging to the current category
-			const categoryWorks = data.works.filter((work) => work.category === category.id);
+	// Create category nodes
+	data.categories.forEach((category) => {
+		const categoryNode = {
+			id: category.id,
+			text: category.title,
+			type: 'category'
+		};
+		nodes.push(categoryNode);
 
-			categoryWorks.forEach((work) => {
-				// Create a node for each work
-				nodes.push({
-					id: work.id,
-					text: work.title,
-					type: 'work'
-				});
-				// Link the work to the category
-				links.push({ source: category.id, target: work.id, type: 'category-work' });
-			});
+		// Create links from owner to categories
+		links.push({
+			source: ownerNode.id,
+			target: categoryNode.id
 		});
-	}
+	});
+
+	// Create work nodes and links to categories
+	data.works.forEach((work) => {
+		const workNode = {
+			id: work.id,
+			text: work.title,
+			type: 'work',
+			category: work.category,
+			thump: work.thump
+		};
+		nodes.push(workNode);
+
+		// Create links from works to categories
+		links.push({
+			source: work.category,
+			target: work.id
+		});
+	});
+
+	let svgElement;
+
+	import { onMount } from 'svelte';
+	import { initializeGraph } from '$lib/d3.js';
+
+	onMount(() => {
+		initializeGraph(svgElement, nodes, links);
+	});
 </script>
 
-<Graph {nodes} {links} />
+<svg bind:this={svgElement}></svg>
