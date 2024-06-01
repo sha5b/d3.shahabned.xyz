@@ -1,25 +1,14 @@
-import PocketBase from 'pocketbase';
-
-const pb = new PocketBase(`${import.meta.env.VITE_API_URL}`);
+// src/routes/+page.js
+import { getCategories, getWorks, getOwner } from '$lib/services/pocketbase';
 
 export const load = async ({ fetch }) => {
-	// Use the fetch function passed to the load function for fetching data
-	const categories = await pb.collection('categories').getFullList({
-		sort: '-title',
-		fetch
-	});
+  const categories = await getCategories(fetch);
+  const works = await getWorks(fetch);
+  const owner = await getOwner(fetch, 'dwuvjtbcmpf5pz0');
 
-	const works = await pb.collection('works').getFullList({
-		sort: '-date',
-		expand: 'category, reference, colab, exhibitions',
-		fetch
-	});
-
-	const owner = await pb.collection('users').getOne('dwuvjtbcmpf5pz0', { fetch });
-
-	return {
-		categories,
-		works,
-		owner
-	};
+  return {
+    categories,
+    works,
+    owner
+  };
 };
