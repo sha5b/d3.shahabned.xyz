@@ -1,4 +1,4 @@
-<img src="/static/image_2024-06-01_18-48-48.png" style="height: 100px; width:100px;"/>
+<img src="/static/image_2024-06-01_18-48-48.png"/>
 
 # create-svelte
 
